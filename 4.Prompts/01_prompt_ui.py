@@ -14,16 +14,27 @@ length_input = st.selectbox("Select Explaination length", ["Short (1-2 paragraph
 
 template = load_prompt('4.Prompts/template.json')
 
-prompt = template.invoke(
-    {'paper_input': paper_input, 
-     'style_input': style_input, 
-     'length_input': length_input
-    }
-)
+# prompt = template.invoke(
+#     {'paper_input': paper_input, 
+#      'style_input': style_input, 
+#      'length_input': length_input
+#     }
+# )
 
-# print(prompt)
-# user_input = st.text_input("Enter your prompt here")
-if st.button("Send"):
-    response = llm.invoke(prompt)
-    st.write(response.content)
-    # print(response)
+# # print(prompt)
+# # user_input = st.text_input("Enter your prompt here")
+# if st.button("Send"):
+#     response = llm.invoke(prompt)
+#     st.write(response.content)
+#     # print(response)
+
+# Build chain
+if st.button("Summarize"):
+    chain = template | llm
+    reponse = chain.invoke(
+        {'paper_input': paper_input, 
+         'style_input': style_input, 
+         'length_input': length_input
+        }
+    )
+    st.write(reponse.content)
