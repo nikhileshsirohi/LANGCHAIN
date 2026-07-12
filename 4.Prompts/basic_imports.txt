@@ -1,0 +1,328 @@
+# Message Types
+#####################################################
+
+from langchain_core.messages import (
+    HumanMessage,
+    SystemMessage,
+    AIMessage
+)
+
+#####################################################
+# Prompt Templates
+#####################################################
+
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    PromptTemplate,
+    MessagesPlaceholder
+)
+
+#####################################################
+# Output Parsers
+#####################################################
+
+from langchain_core.output_parsers import (
+    StrOutputParser,
+    JsonOutputParser
+)
+
+#####################################################
+# Runnable Components (LCEL)
+#####################################################
+
+from langchain_core.runnables import (
+    RunnableLambda,
+    RunnableParallel,
+    RunnablePassthrough
+)
+
+#####################################################
+# Document Object
+#####################################################
+
+from langchain_core.documents import Document
+
+
+*********************************************************
+1. Message Types
+
+These represent the conversation history sent to the LLM.
+
+HumanMessage
+
+Represents the user's message.
+
+from langchain_core.messages import HumanMessage
+
+msg = HumanMessage(content="What is AI?")
+
+Equivalent to:
+
+User: What is AI?
+---------------------------------------
+SystemMessage
+
+Gives instructions to the LLM.
+
+SystemMessage(content="You are a helpful coding assistant.")
+
+Equivalent to:
+
+System:
+You are a helpful coding assistant.
+
+The user never sees this message.
+
+-------------------------------------
+AIMessage
+
+Represents the model's response.
+
+AIMessage(content="AI stands for Artificial Intelligence.")
+
+Equivalent to:
+
+Assistant:
+AI stands for Artificial Intelligence.
+Together
+messages = [
+    SystemMessage(content="You are a math teacher."),
+    HumanMessage(content="What is 5+7?")
+]
+
+response = llm.invoke(messages)
+
+******************************************
+2. Prompt Templates
+
+Instead of writing prompts manually every time, use templates.
+------------------------------
+PromptTemplate
+
+For single text prompts.
+
+from langchain_core.prompts import PromptTemplate
+
+prompt = PromptTemplate.from_template(
+    "Explain {topic} in simple words."
+)
+
+print(prompt.invoke({"topic":"LangChain"}))
+
+Output
+
+Explain LangChain in simple words.
+--------------------------------------------
+ChatPromptTemplate
+
+For chat models.
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system","You are an AI teacher."),
+    ("human","Explain {topic}.")
+])
+
+Later
+
+prompt.invoke({"topic":"Vector Database"})
+
+Produces
+
+System:
+You are an AI teacher.
+
+Human:
+Explain Vector Database.
+MessagesPlaceholder
+
+Used when conversation history changes dynamically.
+
+Example
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system","You are helpful."),
+    MessagesPlaceholder("history"),
+    ("human","{question}")
+])
+
+Later
+
+prompt.invoke({
+    "history":[
+        HumanMessage(content="Hi"),
+        AIMessage(content="Hello")
+    ],
+    "question":"Explain LangChain."
+})
+
+This is heavily used in chatbots and memory.
+
+**********************************************
+3. Output Parsers
+
+LLMs return different output formats.
+
+Output parsers convert them into Python objects.
+
+StrOutputParser
+
+Returns only the text.
+
+chain = prompt | llm | StrOutputParser()
+
+result = chain.invoke(...)
+
+Output
+
+"This is the answer."
+
+instead of
+
+AIMessage(
+    content="This is the answer."
+)
+------------------------------------------
+JsonOutputParser
+
+For structured JSON responses.
+
+Prompt
+
+Return answer in JSON.
+
+{
+"name":"",
+"age":""
+}
+
+Model returns
+
+{
+    "name":"John",
+    "age":25
+}
+
+Parser converts it into
+
+{
+    "name":"John",
+    "age":25
+}
+
+instead of a string.
+
+Useful for APIs.
+
+************************************************
+4. Runnable Components (LCEL)
+
+Everything in LangChain is a Runnable.
+
+You connect them using
+
+|
+---------------------------------
+RunnableLambda
+
+Turns a Python function into a LangChain component.
+
+from langchain_core.runnables import RunnableLambda
+
+square = RunnableLambda(lambda x: x*x)
+
+square.invoke(5)
+
+Output
+
+25
+--------------------------------
+RunnableParallel
+
+Runs multiple tasks simultaneously.
+
+Example
+
+parallel = RunnableParallel(
+    joke=joke_chain,
+    poem=poem_chain
+)
+
+parallel.invoke("AI")
+
+Output
+
+{
+    "joke":"...",
+    "poem":"..."
+}
+
+Both chains execute at the same time.
+
+RunnablePassthrough
+
+Passes input unchanged.
+
+Example
+
+RunnablePassthrough()
+
+Input
+
+"What is AI?"
+
+Output
+
+"What is AI?"
+
+Useful when building larger pipelines.
+
+*****************************************
+5. Document Object
+
+Represents one piece of text with metadata.
+
+from langchain_core.documents import Document
+
+doc = Document(
+    page_content="LangChain is a framework for LLM applications.",
+    metadata={
+        "source":"book.pdf",
+        "page":15
+    }
+)
+
+Contains
+
+Text
+↓
+
+LangChain is a framework...
+
+Metadata
+↓
+
+source = book.pdf
+page = 15
+
+Used in
+
+RAG
+Vector Databases
+Retrievers
+PDF processing
+Search
+**************************
+When you'll use each
+Component	        Used for
+HumanMessage	    User input
+SystemMessage	    Instructions to the model
+AIMessage	        Model response
+PromptTemplate	    Single-text prompts
+ChatPromptTemplate	Chat prompts with roles
+MessagesPlaceholder	Dynamic chat history
+StrOutputParser	    Convert AIMessage → string
+JsonOutputParser	Convert JSON text → Python dictionary
+RunnableLambda	    Wrap Python functions into a chain
+RunnableParallel	Run multiple chains concurrently
+RunnablePassthrough	Forward input unchanged in a pipeline
+Document	        Store text plus metadata for RAG and retrieval
