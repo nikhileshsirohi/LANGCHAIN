@@ -1,5 +1,5 @@
 from langchain_ollama import ChatOllama
-from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import PromptTemplate, load_prompt
 import streamlit as st
 
 llm = ChatOllama(
@@ -12,23 +12,7 @@ paper_input = st.selectbox("Select a research paper", ["Attention Is all you nee
 style_input = st.selectbox("Select Explaination style", ["Beginner Friendly", "Technical oriented", "Mathematical oriented"])
 length_input = st.selectbox("Select Explaination length", ["Short (1-2 paragraphs)", "Medium (3-4 paragraphs)", "Long (deatail explanation)"])
 
-template = PromptTemplate(
-    template = """
-    Please summarize the research paper titled "{paper_input}" with the following specifications:
-    Explanation Style: {style_input}
-    Explanation Length: {length_input}
-    1. Mathematical Details:
-    - Include relevant mathematical equations if present in the paper.
-    - Explain the mathematical concepts using simple, intuitive code snippets where applicable.
-    2. Analogies:
-    - Use relatable analogies to simplify complex ideas.
-    If certain information is not available in the paper, respond with: "Insufficient information available" instead of guessing.
-    Ensure the summary is clear, accurate, and aligned with the provided style and length.
-    """,
-
-    input_variables = ["paper_input", "style_input", "length_input"],
-    validate_template=True 
-)
+template = load_prompt('4.Prompts/template.json')
 
 prompt = template.invoke(
     {'paper_input': paper_input, 
